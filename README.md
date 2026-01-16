@@ -37,8 +37,8 @@ On every run, the script:
 Clone the repo so `bootstrap.sh` and `Wallpapers/` are both available:
 
 ```bash
-git clone https://github.com/STRHercules/LinuxSoftwareRepo.git
-cd LinuxSoftwareRepo
+git clone https://github.com/STRHercules/LinuxBootstrap.git
+cd LinuxBootstrap
 ```
 
 Make the script executable:
