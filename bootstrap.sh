@@ -599,6 +599,24 @@ install_node_lts_via_nvm() {
   " || warn "Node install via NVM failed (open a new terminal and try: nvm install --lts)."
 }
 
+# ---------- npm global tools ----------
+install_npm_global_tools() {
+  local nvm_dir="$HOME/.nvm"
+  if [[ ! -s "$nvm_dir/nvm.sh" ]]; then
+    warn "NVM not installed; cannot install npm global tools."
+    return
+  fi
+
+  log "Installing Codex and Gemini CLI via npm (global)..."
+  bash -lc "
+    set -e
+    export NVM_DIR=\"$nvm_dir\"
+    . \"$nvm_dir/nvm.sh\"
+    npm install -g @openai/codex
+    npm install -g @google/gemini-cli
+  " || warn "npm global tool install failed (try: npm install -g @openai/codex @google/gemini-cli)."
+}
+
 # ---------- Cursor AppImage ----------
 install_cursor_appimage() {
   log "Installing Cursor (AppImage) into ~/Applications..."
@@ -1349,6 +1367,8 @@ install_nvm
 progress_advance "NVM"
 install_node_lts_via_nvm
 progress_advance "Node.js (LTS)"
+install_npm_global_tools
+progress_advance "Codex + Gemini CLI"
 install_github_desktop_deb
 progress_advance "GitHub Desktop"
 install_deskflow_deb
