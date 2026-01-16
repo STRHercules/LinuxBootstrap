@@ -283,6 +283,26 @@ read_os_release() {
   fi
 }
 
+apt_repo_codename() {
+  # Prefer Ubuntu base codename on Linux Mint (apt repos generally target Ubuntu).
+  if [[ "$OS_ID" == "linuxmint" && -n "$UBUNTU_CODENAME" ]]; then
+    echo "$UBUNTU_CODENAME"
+    return 0
+  fi
+
+  if [[ -n "$OS_CODENAME" ]]; then
+    echo "$OS_CODENAME"
+    return 0
+  fi
+
+  if [[ -n "$UBUNTU_CODENAME" ]]; then
+    echo "$UBUNTU_CODENAME"
+    return 0
+  fi
+
+  echo "stable"
+}
+
 apt_update() { sudo apt-get update -y; }
 apt_install_many() { sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "$@"; }
 
@@ -390,9 +410,8 @@ setup_adoptium_repo_apt() {
   apt_update
   apt_install_many wget apt-transport-https gpg
 
-  local codename="$OS_CODENAME"
-  [[ -z "$codename" && -n "$UBUNTU_CODENAME" ]] && codename="$UBUNTU_CODENAME"
-  [[ -z "$codename" ]] && codename="stable"
+  local codename
+  codename="$(apt_repo_codename)"
 
   wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public \
     | gpg --dearmor \
