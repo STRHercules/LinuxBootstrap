@@ -405,37 +405,6 @@ setup_github_cli_repo_apt() {
     | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
 }
 
-setup_adoptium_repo_apt() {
-  log "Setting up Adoptium (Temurin) repo (apt)..."
-  apt_update
-  apt_install_many wget apt-transport-https gpg
-
-  local codename
-  codename="$(apt_repo_codename)"
-
-  wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public \
-    | gpg --dearmor \
-    | sudo tee /etc/apt/trusted.gpg.d/adoptium.gpg >/dev/null
-
-  echo "deb https://packages.adoptium.net/artifactory/deb ${codename} main" \
-    | sudo tee /etc/apt/sources.list.d/adoptium.list >/dev/null
-}
-
-install_temurin_25() {
-  log "Installing Temurin JDK 25..."
-  if [[ "$PM" == "apt" ]]; then
-    apt_update
-    if ! sudo DEBIAN_FRONTEND=noninteractive apt-get install -y temurin-25-jdk; then
-      warn "temurin-25-jdk install failed. Falling back to distro OpenJDK if available..."
-      apt_install_optional openjdk-25-jdk openjdk-21-jdk
-    fi
-  elif [[ "$PM" == "dnf" ]]; then
-    sudo dnf install -y temurin-25-jdk || warn "temurin-25-jdk not available via dnf here."
-  else
-    warn "Temurin automation not implemented for pacman in this script."
-  fi
-}
-
 # ---------- Shell (Nerd Font + Oh My Zsh) ----------
 ensure_zsh_installed() {
   if have zsh; then
@@ -1213,7 +1182,7 @@ log "Distro: ${c_bold}${OS_ID}${c_reset} (like: ${OS_LIKE:-n/a})"
 log "Arch: ${c_bold}${ARCH}${c_reset}"
 
 # Total progress steps (roughly: big phases + key tooling).
-progress_init 25 "Initializing"
+progress_init 24 "Initializing"
 need_sudo
 progress_advance "sudo ready"
 
@@ -1281,9 +1250,6 @@ case "$PM" in
     sudo DEBIAN_FRONTEND=noninteractive apt-get install -y microsoft-edge-stable || warn "Edge install failed."
     progress_advance "Browsers (Brave/Edge)"
 
-    setup_adoptium_repo_apt || warn "Adoptium repo setup failed (skipping Temurin JDK 25)."
-    install_temurin_25
-    progress_advance "Java (Temurin)"
     ;;
   dnf)
     section "Packages (dnf)"
@@ -1304,7 +1270,6 @@ case "$PM" in
     progress_advance "Optional packages"
     progress_advance "GitHub CLI"
     progress_advance "Browsers (skipped)"
-    progress_advance "Java (Temurin)"
     ;;
   pacman)
     section "Packages (pacman)"
@@ -1322,12 +1287,11 @@ case "$PM" in
     pacman_install_optional ttf-fira-code
     pacman_install_optional cmatrix fortune-mod cowsay lolcat figlet sl ninvaders hollywood fastfetch btop qdirstat remmina vlc npm
 
-    warn "Brave/Edge/Temurin repo automation not implemented for pacman here (AUR is distro-specific)."
+    warn "Brave/Edge repo automation not implemented for pacman here (AUR is distro-specific)."
     progress_advance "Required packages"
     progress_advance "Optional packages"
     progress_advance "GitHub CLI"
     progress_advance "Browsers (skipped)"
-    progress_advance "Java (skipped)"
     ;;
 esac
 
