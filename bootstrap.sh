@@ -1050,6 +1050,29 @@ install_zsh_plugins_fallback() {
   fi
 }
 
+# ---------- GNOME Shell ----------
+ensure_gnome_shell() {
+  if have gnome-shell; then
+    log "GNOME Shell already installed."
+    return 0
+  fi
+
+  section "GNOME Shell"
+  log "Installing GNOME Shell (best-effort)..."
+  case "$PM" in
+    apt)
+      apt_update
+      apt_install_optional gnome-shell gnome-shell-extension-prefs gnome-shell-extensions
+      ;;
+    dnf)
+      sudo dnf install -y gnome-shell gnome-extensions-app gnome-shell-extension-prefs || true
+      ;;
+    pacman)
+      sudo pacman -Syu --noconfirm --needed gnome-shell gnome-shell-extensions gnome-extensions || true
+      ;;
+  esac
+}
+
 ensure_bat_command() {
   mkdir -p "$HOME/.local/bin"
   if have bat; then return; fi
@@ -1347,6 +1370,7 @@ GNOME_EXTENSIONS=(
   transparent-top-bar@ftpix.com
   user-theme@gnome-shell-extensions.gcampax.github.com
 )
+ensure_gnome_shell
 install_gnome_extensions "${GNOME_EXTENSIONS[@]}"
 progress_advance "GNOME extensions"
 
